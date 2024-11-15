@@ -1,9 +1,9 @@
 export interface SearchResponse {
-  results: SearchResult[]
+  data: SearchResult[]
 }
 
 export interface SearchResult {
-  id: number
+  id: string
   title: string
   tags: string[]
 }

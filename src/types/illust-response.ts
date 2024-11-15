@@ -20,3 +20,14 @@ export interface AuthorDTO {
   name: string
   id: number
 }
+
+export interface IllustDetails {
+  title: string
+  url_big: string
+  author: AuthorDetailsDTO
+}
+
+export interface AuthorDetailsDTO {
+  user_id: string
+  user_name: string
+}

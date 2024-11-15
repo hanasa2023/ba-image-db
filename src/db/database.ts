@@ -3,7 +3,7 @@ import { logger } from '../utils/logger'
 import { fetchWithRetry } from '../utils/fetch-with-retry'
 import { SearchResponse } from '../types/search-response'
 import { processBar } from '../utils/process-bar'
-import { IllustResponse } from 'src/types/illust-response'
+import { IllustDetails } from 'src/types/illust-response'
 import { BASE_URL } from '../utils/constants'
 
 export class RedisDatabase {
@@ -46,11 +46,11 @@ export class RedisDatabase {
   async updateData(res: SearchResponse) {
     await this.connect()
     logger.info('Updating data')
-    processBar.start(res.results.length, 0)
-    for (const [index, r] of res.results.entries()) {
+    processBar.start(res.data.length, 0)
+    for (const [index, r] of res.data.entries()) {
       processBar.update(index + 1)
       const tags = r.tags
-      const strId = r.id.toString()
+      const strId = r.id
       const existsId = await this._client.exists(`baId:${strId}`)
       if (existsId) break // skip if already exists
       for (const tag of tags) {
@@ -59,30 +59,34 @@ export class RedisDatabase {
           await this._client.sAdd(`baTag:${tag}`, strId)
         }
         if (!existsId) {
-          const response = await fetchWithRetry(`${BASE_URL}/illust/${strId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
+          const response = await fetchWithRetry(
+            `${BASE_URL}/touch/ajax/illust/details?illust_id=${strId}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
             },
-          })
+          )
           if (response.ok) {
-            const illust: IllustResponse = await response.json()
+            const illust: IllustDetails = (await response.json()).body
+              .illust_details
             await this._client.del(`baId:${strId}`)
             await this._client.hSet(`baId:${strId}`, 'title', illust.title)
             await this._client.hSet(
               `baId:${strId}`,
               'imgUrl',
-              illust.images[0].urls.original,
+              illust.url_big.replace('i.pximg.net', 'pximg.hanasaki.tech'),
             )
             await this._client.hSet(
               `baId:${strId}`,
               'author',
-              illust.author.name,
+              illust.author.user_name,
             )
             await this._client.hSet(
               `baId:${strId}`,
               'authorId',
-              illust.author.id.toString(),
+              illust.author.user_id,
             )
           }
         }
@@ -96,11 +100,12 @@ export class RedisDatabase {
   async setData(res: SearchResponse) {
     await this.connect()
     logger.info('Setting data')
-    processBar.start(res.results.length, 0)
-    for (const [index, r] of res.results.entries()) {
+    logger.info(res.data)
+    processBar.start(res.data.length, 0)
+    for (const [index, r] of res.data.entries()) {
       processBar.update(index + 1)
       const tags = r.tags
-      const strId = r.id.toString()
+      const strId = r.id
       for (const tag of tags) {
         const existsTag = await this._client.sIsMember(`baTag:${tag}`, strId)
         const existsId = await this._client.exists(`baId:${strId}`)
@@ -108,30 +113,34 @@ export class RedisDatabase {
           await this._client.sAdd(`baTag:${tag}`, strId)
         }
         if (!existsId) {
-          const response = await fetchWithRetry(`${BASE_URL}/illust/${strId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
+          const response = await fetchWithRetry(
+            `${BASE_URL}/touch/ajax/illust/details?illust_id=${strId}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
             },
-          })
+          )
           if (response.ok) {
-            const illust: IllustResponse = await response.json()
+            const illust: IllustDetails = (await response.json()).body
+              .illust_details
             await this._client.del(`baId:${strId}`)
             await this._client.hSet(`baId:${strId}`, 'title', illust.title)
             await this._client.hSet(
               `baId:${strId}`,
               'imgUrl',
-              illust.images[0].urls.original,
+              illust.url_big.replace('i.pximg.net', 'pximg.hanasaki.tech'),
             )
             await this._client.hSet(
               `baId:${strId}`,
               'author',
-              illust.author.name,
+              illust.author.user_name,
             )
             await this._client.hSet(
               `baId:${strId}`,
               'authorId',
-              illust.author.id.toString(),
+              illust.author.user_id,
             )
           }
         }
