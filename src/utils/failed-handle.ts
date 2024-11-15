@@ -8,7 +8,7 @@ export async function saveCurrentPage(page: number) {
 export async function getCurrentPage(): Promise<number> {
   if (fs.existsSync(PAGE_FILE)) {
     const page = fs.readFileSync(PAGE_FILE, 'utf-8')
-    return parseInt(page, 1)
+    return parseInt(page, 10)
   }
-  return 0
+  return 1
 }

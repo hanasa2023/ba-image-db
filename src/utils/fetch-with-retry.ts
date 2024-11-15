@@ -4,7 +4,7 @@ export async function fetchWithRetry(
   url: string,
   options: RequestInit,
   retries: number = 5,
-  timeout: number = 10000,
+  timeout: number = 20000,
 ): Promise<Response> {
   for (let i = 0; i < retries; i++) {
     try {
