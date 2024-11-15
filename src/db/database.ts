@@ -1,7 +1,9 @@
 import { createClient } from 'redis'
 import { logger } from '../utils/logger'
+import { fetchWithRetry } from '../utils/fetch-with-retry'
 import { SearchResponse } from '../types/search-response'
 import { processBar } from '../utils/process-bar'
+import { IllustResponse } from 'src/types/illust-response'
 
 export class RedisDatabase {
   private _client
@@ -49,11 +51,41 @@ export class RedisDatabase {
       const tags = r.tags
       const strId = r.id.toString()
       for (const tag of tags) {
-        const exists = await this._client.sIsMember(`baTag:${tag}`, strId)
-        if (!exists) {
+        const existsTag = await this._client.sIsMember(`baTag:${tag}`, strId)
+        const existsId = await this._client.exists(`baId:${strId}`)
+        if (!existsTag) {
           await this._client.sAdd(`baTag:${tag}`, strId)
-        } else {
-          // logger.info(`Data already exists for tag: ${tag}, skip id: ${strId}`)
+        }
+        if (!existsId) {
+          const response = await fetchWithRetry(
+            `https://pixiv-api.hanasaki.tech/illust/${strId}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            },
+          )
+          if (response.ok) {
+            const illust: IllustResponse = await response.json()
+            await this._client.del(`baId:${strId}`)
+            await this._client.hSet(`baId:${strId}`, 'title', illust.title)
+            await this._client.hSet(
+              `baId:${strId}`,
+              'imgUrl',
+              illust.images[0].urls.original,
+            )
+            await this._client.hSet(
+              `baId:${strId}`,
+              'author',
+              illust.author.name,
+            )
+            await this._client.hSet(
+              `baId:${strId}`,
+              'authorId',
+              illust.author.id.toString(),
+            )
+          }
         }
       }
     }

@@ -14,7 +14,6 @@ async function index() {
       body: JSON.stringify({
         word: 'ブルーアーカイブ ',
         blt: 1000,
-        p: 2,
       }),
     },
   )
@@ -27,24 +26,27 @@ async function index() {
   logger.info(`Total: ${total}, Last Page: ${lastPage}`)
 
   const url = env.REDIS_URL
-  logger.info(`Redis URL: ${url}`)
+  // logger.info(`Redis URL: ${url}`)
   const redis = new RedisDatabase(url)
   await redis.connect()
   await redis.setTotal(total)
   for (const i of Array(lastPage).keys()) {
-    if (i < 22) continue
+    // if (i < 10) continue
     logger.info(`Page: ${i + 1}`)
-    const response = await fetch('https://pixiv-api.hanasaki.tech/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetchWithRetry(
+      'https://pixiv-api.hanasaki.tech/search',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          word: 'ブルーアーカイブ ',
+          blt: 1000,
+          p: i + 1,
+        }),
       },
-      body: JSON.stringify({
-        word: 'ブルーアーカイブ ',
-        blt: 1000,
-        p: i + 1,
-      }),
-    })
+    )
     if (response.ok) {
       const json = await response.json()
       await redis.setData(json)
