@@ -24,6 +24,7 @@ async function index() {
   }
   const lastPage = Math.ceil(total / 60)
   logger.info(`Total: ${total}, Last Page: ${lastPage}`)
+  if (total === 0) throw new Error('Total is 0')
 
   const url = env.REDIS_URL
   const redis = new RedisDatabase(url)
