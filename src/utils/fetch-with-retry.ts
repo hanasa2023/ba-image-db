@@ -18,11 +18,30 @@ export async function fetchWithRetry(
       if (response.ok) {
         return response
       } else {
-        logger.warn(
-          `Fetch failed with status: ${response.status}. Retrying (${
-            i + 1
-          }/${retries})...`,
-        )
+        if (response.status === 400) {
+          logger.error(
+            `Fetch failed with status: ${response.status}. Bad Request, not retrying.`,
+          )
+          throw new Error(
+            `Fetch failed with status: ${response.status}. Bad Request, not retrying.`,
+          )
+        }
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After')
+          const waitTime = retryAfter ? parseInt(retryAfter, 10) * 1000 : 30000 // Default to 60 seconds if no Retry-After header
+          logger.warn(
+            `Fetch failed with status: ${
+              response.status
+            }. Too Many Requests, retrying after ${waitTime / 1000} seconds...`,
+          )
+          await new Promise((resolve) => setTimeout(resolve, waitTime))
+        } else {
+          logger.warn(
+            `Fetch failed with status: ${response.status}. Retrying (${
+              i + 1
+            }/${retries})...`,
+          )
+        }
       }
     } catch (error) {
       logger.warn(`Fetch error: ${error}. Retrying (${i + 1}/${retries})...`)
