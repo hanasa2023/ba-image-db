@@ -1,0 +1,26 @@
+{
+  "name": "ba-image-db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/index.ts | pino-pretty"
+  },
+  "dependencies": {
+    "@types/cli-progress": "^3.11.6",
+    "cli-progress": "^3.12.0",
+    "dotenv": "^16.4.5",
+    "pino": "^9.5.0",
+    "redis": "^4.7.0",
+    "ts-node": "^10.9.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "pino-pretty": "^13.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.5.3"
+  },
+  "private": true
+}

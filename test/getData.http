@@ -1,0 +1,10 @@
+### GET request to example server
+POST https://pixiv-api.hanasaki.tech/search
+Content-Type: application/json
+
+{
+  "word": "ブルーアーカイブ ",
+  "blt": 1000,
+  "p": 2
+}
+###
