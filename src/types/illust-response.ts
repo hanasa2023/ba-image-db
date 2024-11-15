@@ -24,7 +24,7 @@ export interface AuthorDTO {
 export interface IllustDetails {
   title: string
   url_big: string
-  author: AuthorDetailsDTO
+  author_details: AuthorDetailsDTO
 }
 
 export interface AuthorDetailsDTO {
