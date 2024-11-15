@@ -5,6 +5,7 @@ import { SearchResponse } from '../types/search-response'
 import { processBar } from '../utils/process-bar'
 import { IllustDetails } from 'src/types/illust-response'
 import { BASE_URL, getOptions } from '../utils/constants'
+import { delay } from 'src/utils/failed-handle'
 
 export class RedisDatabase {
   private _client
@@ -131,6 +132,7 @@ export class RedisDatabase {
               'authorId',
               illust.author_details.user_id,
             )
+            await delay(333)
           }
         }
       }

@@ -12,3 +12,7 @@ export async function getCurrentPage(): Promise<number> {
   }
   return 1
 }
+
+export async function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
