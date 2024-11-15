@@ -132,7 +132,7 @@ export class RedisDatabase {
               'authorId',
               illust.author_details.user_id,
             )
-            await delay(333)
+            await delay(600)
           }
         }
       }
