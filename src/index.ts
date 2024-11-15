@@ -31,6 +31,7 @@ async function index() {
   await redis.setTotal(total)
 
   let startPage = await getCurrentPage()
+  logger.info(`Start Page: ${startPage}`)
   for (let i = startPage - 1; i < lastPage; i++) {
     // if (i < 10) continue
     logger.info(`Page: ${i + 1}`)
