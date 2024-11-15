@@ -4,6 +4,7 @@ import { fetchWithRetry } from '../utils/fetch-with-retry'
 import { SearchResponse } from '../types/search-response'
 import { processBar } from '../utils/process-bar'
 import { IllustResponse } from 'src/types/illust-response'
+import { BASE_URL } from '../utils/constants'
 
 export class RedisDatabase {
   private _client
@@ -58,15 +59,12 @@ export class RedisDatabase {
           await this._client.sAdd(`baTag:${tag}`, strId)
         }
         if (!existsId) {
-          const response = await fetchWithRetry(
-            `https://pixiv-api.hanasaki.tech/illust/${strId}`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
+          const response = await fetchWithRetry(`${BASE_URL}/illust/${strId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
             },
-          )
+          })
           if (response.ok) {
             const illust: IllustResponse = await response.json()
             await this._client.del(`baId:${strId}`)
@@ -110,15 +108,12 @@ export class RedisDatabase {
           await this._client.sAdd(`baTag:${tag}`, strId)
         }
         if (!existsId) {
-          const response = await fetchWithRetry(
-            `https://pixiv-api.hanasaki.tech/illust/${strId}`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
+          const response = await fetchWithRetry(`${BASE_URL}/illust/${strId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
             },
-          )
+          })
           if (response.ok) {
             const illust: IllustResponse = await response.json()
             await this._client.del(`baId:${strId}`)
