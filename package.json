@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "ts-node src/index.ts | pino-pretty"
+    "start": "ts-node src/index.ts | pino-pretty",
+    "update": "ts-node src/update.ts | pino-pretty"
   },
   "dependencies": {
     "@types/cli-progress": "^3.11.6",

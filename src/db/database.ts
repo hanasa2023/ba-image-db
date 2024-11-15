@@ -42,6 +42,59 @@ export class RedisDatabase {
     logger.info('Total set successfully!')
   }
 
+  async updateData(res: SearchResponse) {
+    await this.connect()
+    logger.info('Updating data')
+    processBar.start(res.results.length, 0)
+    for (const [index, r] of res.results.entries()) {
+      processBar.update(index + 1)
+      const tags = r.tags
+      const strId = r.id.toString()
+      const existsId = await this._client.exists(`baId:${strId}`)
+      if (existsId) break // skip if already exists
+      for (const tag of tags) {
+        const existsTag = await this._client.sIsMember(`baTag:${tag}`, strId)
+        if (!existsTag) {
+          await this._client.sAdd(`baTag:${tag}`, strId)
+        }
+        if (!existsId) {
+          const response = await fetchWithRetry(
+            `https://pixiv-api.hanasaki.tech/illust/${strId}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            },
+          )
+          if (response.ok) {
+            const illust: IllustResponse = await response.json()
+            await this._client.del(`baId:${strId}`)
+            await this._client.hSet(`baId:${strId}`, 'title', illust.title)
+            await this._client.hSet(
+              `baId:${strId}`,
+              'imgUrl',
+              illust.images[0].urls.original,
+            )
+            await this._client.hSet(
+              `baId:${strId}`,
+              'author',
+              illust.author.name,
+            )
+            await this._client.hSet(
+              `baId:${strId}`,
+              'authorId',
+              illust.author.id.toString(),
+            )
+          }
+        }
+      }
+    }
+    processBar.stop()
+    logger.info('Data update successfully!')
+    await this.disconnect()
+  }
+
   async setData(res: SearchResponse) {
     await this.connect()
     logger.info('Setting data')
