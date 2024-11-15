@@ -1,11 +1,12 @@
 import {env} from "./config";
 import {logger} from "./utils/logger";
 import { RedisDatabase } from "./db/database";
+import {fetchWithRetry} from "./utils/fetch-with-retry";
 
 
 async function index() {
 
-    const getTotal = await fetch("https://pixiv-api.hanasaki.tech/search", {
+    const getTotal = await fetchWithRetry("https://pixiv-api.hanasaki.tech/search", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
