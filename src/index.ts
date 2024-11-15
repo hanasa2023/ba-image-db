@@ -60,7 +60,7 @@ async function index() {
       //   }),
       // })
       const response = await fetchWithRetry(
-        `${BASE_URL}/ajax/search/illustrations/ブルーアーカイブ 1000users入り?word=ブルーアーカイブ 1000users入り&order=date_d&mode=all&${
+        `${BASE_URL}/ajax/search/illustrations/ブルーアーカイブ 1000users入り?word=ブルーアーカイブ 1000users入り&order=date_d&mode=all&p=${
           i + 1
         }&csw=0&s_mode=s_tag&type=all&lang=zh`,
         {
