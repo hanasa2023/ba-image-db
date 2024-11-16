@@ -6,8 +6,8 @@ import { processBar } from '../utils/process-bar'
 import { IllustDetails } from 'src/types/illust-response'
 import { BASE_URL, getOptions } from '../utils/constants'
 import { delay } from '../utils/failed-handle'
-import { parseRedisHash } from 'src/utils/tools'
-import { IllustDTO } from 'src/types/illust'
+import { parseRedisHash } from '../utils/tools'
+import { IllustDTO } from '../types/illust'
 
 export class RedisDatabase {
   private _client
