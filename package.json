@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "ts-node src/index.ts | pino-pretty",
-    "update": "ts-node src/update.ts | pino-pretty",
+    "create-db": "ts-node src/create-db.ts | pino-pretty",
+    "update-db": "ts-node src/update-db.ts | pino-pretty",
     "fix-db": "ts-node src/utils/fix-tools.ts | pino-pretty"
   },
   "dependencies": {
