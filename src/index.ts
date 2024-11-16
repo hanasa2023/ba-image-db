@@ -61,11 +61,11 @@ async function index() {
       if (response.ok) {
         const json: SearchResponse = (await response.json()).body.illust
         await redis.setData(json)
-        await saveCurrentPage(i + 1)
+        await saveCurrentPage(i)
       }
     } catch (error) {
       logger.error(`Error processing page ${i + 1}: ${error}`)
-      await saveCurrentPage(i + 1) // Save the current page before exiting
+      await saveCurrentPage(i) // Save the current page before exiting
       process.exit(1) // Exit with a non-zero status code on error
     }
   }

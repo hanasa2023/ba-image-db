@@ -28,7 +28,9 @@ export async function fetchWithRetry(
         }
         if (response.status === 429) {
           const retryAfter = response.headers.get('Retry-After')
-          const waitTime = retryAfter ? parseInt(retryAfter, 10) * 1000 : 60000 // Default to 60 seconds if no Retry-After header
+          const waitTime = retryAfter
+            ? parseInt(retryAfter, 10) * 1000
+            : 3 * 60000 // Default to 60 seconds if no Retry-After header
           logger.warn(
             `Fetch failed with status: ${
               response.status
