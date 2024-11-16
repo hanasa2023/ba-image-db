@@ -6,6 +6,8 @@ import { processBar } from '../utils/process-bar'
 import { IllustDetails } from 'src/types/illust-response'
 import { BASE_URL, getOptions } from '../utils/constants'
 import { delay } from '../utils/failed-handle'
+import { parseRedisHash } from 'src/utils/tools'
+import { IllustDTO } from 'src/types/illust'
 
 export class RedisDatabase {
   private _client
@@ -70,6 +72,14 @@ export class RedisDatabase {
             const tags = illust.tags.reduce((acc: string, cur: string) => {
               return acc + ', ' + cur
             })
+            await this._client.sAdd(
+              `baImg:${illust.ai_type !== 1 ? 'ai' : 'notAI'}`,
+              strId,
+            )
+            await this._client.sAdd(
+              `baImg:${illust.restrict === '0' ? 'safe' : 'r18'}`,
+              strId,
+            )
             await this._client.del(`baId:${strId}`)
             await this._client.hSet(`baId:${strId}`, 'id', illust.id)
             await this._client.hSet(`baId:${strId}`, 'title', illust.title)
@@ -113,54 +123,59 @@ export class RedisDatabase {
       processBar.update(index + 1)
       const tags = r.tags
       const strId = r.id
-      for (const tag of tags) {
-        const existsTag = await this._client.sIsMember(`baTag:${tag}`, strId)
-        const existsId = await this._client.exists(`baId:${strId}`)
-        if (!existsTag) {
-          await this._client.sAdd(`baTag:${tag}`, strId)
-        }
-        if (!existsId) {
-          const response = await fetchWithRetry(
-            `${BASE_URL}/touch/ajax/illust/details?illust_id=${strId}`,
-            getOptions,
+      const existsId = await this._client.exists(`baId:${strId}`)
+      if (!existsId) {
+        const response = await fetchWithRetry(
+          `${BASE_URL}/touch/ajax/illust/details?illust_id=${strId}`,
+          getOptions,
+        )
+        if (response.ok) {
+          const illust: IllustDetails = (await response.json()).body
+            .illust_details
+          const tags = illust.tags.reduce((acc: string, cur: string) => {
+            return acc + ', ' + cur
+          })
+          await this._client.sAdd(
+            `baImg:${illust.ai_type !== 1 ? 'ai' : 'notAI'}`,
+            strId,
           )
-          if (response.ok) {
-            const illust: IllustDetails = (await response.json()).body
-              .illust_details
-            const tags = illust.tags.reduce((acc: string, cur: string) => {
-              return acc + ', ' + cur
-            })
-            await this._client.del(`baId:${strId}`)
-            await this._client.hSet(`baId:${strId}`, 'id', illust.id)
-            await this._client.hSet(`baId:${strId}`, 'title', illust.title)
-            await this._client.hSet(`baId:${strId}`, 'tags', tags)
-            await this._client.hSet(
-              `baId:${strId}`,
-              'restrict',
-              illust.restrict === '0' ? 'safe' : 'r18',
-            )
-            await this._client.hSet(`baId:${strId}`, 'aiType', illust.ai_type)
-            await this._client.hSet(
-              `baId:${strId}`,
-              'imgUrl',
-              illust.url_big.replace('i.pximg.net', 'pximg.hanasaki.tech'),
-            )
-            await this._client.hSet(
-              `baId:${strId}`,
-              'author',
-              illust.author_details.user_name,
-            )
-            await this._client.hSet(
-              `baId:${strId}`,
-              'authorId',
-              illust.author_details.user_id,
-            )
-            await delay(1000)
-            delayTime = 0
-          }
-        } else {
-          delayTime = 1000
+          await this._client.sAdd(
+            `baImg:${illust.restrict === '0' ? 'safe' : 'r18'}`,
+            strId,
+          )
+          await this._client.del(`baId:${strId}`)
+          await this._client.hSet(`baId:${strId}`, 'id', illust.id)
+          await this._client.hSet(`baId:${strId}`, 'title', illust.title)
+          await this._client.hSet(`baId:${strId}`, 'tags', tags)
+          await this._client.hSet(
+            `baId:${strId}`,
+            'restrict',
+            illust.restrict === '0' ? 'safe' : 'r18',
+          )
+          await this._client.hSet(`baId:${strId}`, 'aiType', illust.ai_type)
+          await this._client.hSet(
+            `baId:${strId}`,
+            'imgUrl',
+            illust.url_big.replace('i.pximg.net', 'pximg.hanasaki.tech'),
+          )
+          await this._client.hSet(
+            `baId:${strId}`,
+            'author',
+            illust.author_details.user_name,
+          )
+          await this._client.hSet(
+            `baId:${strId}`,
+            'authorId',
+            illust.author_details.user_id,
+          )
+          await delay(1000)
+          delayTime = 0
         }
+      } else {
+        delayTime = 1000
+      }
+      for (const tag of tags) {
+        await this._client.sAdd(`baTag:${tag}`, strId)
       }
     }
     processBar.stop()
@@ -187,5 +202,29 @@ export class RedisDatabase {
     if (this._client.isOpen) {
       await this._client.disconnect()
     }
+  }
+  async fixDB() {
+    await this.connect()
+    const ids = (await this._client.keys('baId:*')).map((id) =>
+      id.replace('baId:', ''),
+    )
+    logger.info('Start fixing DB')
+    for (const id of ids) {
+      processBar.start(ids.length, 0)
+      processBar.increment()
+      const illust = await this._client.hGetAll(`baId:${id}`)
+      const illustInfo = parseRedisHash<IllustDTO>(illust)
+      // 设置baImg:ai/notAI, baImg:safe/r18
+      await this._client.sAdd(
+        `baImg:${illustInfo.aiType !== 1 ? 'ai' : 'notAI'}`,
+        id,
+      )
+      await this._client.sAdd(
+        `baImg:${illustInfo.restrict === '0' ? 'safe' : 'r18'}`,
+        id,
+      )
+      processBar.stop()
+    }
+    logger.info('DB fixed successfully!')
   }
 }
