@@ -115,6 +115,7 @@ export class RedisDatabase {
     processBar.start(rIds.length, 0)
     for (const [index, id] of rIds.entries()) {
       processBar.update(index + 1)
+      await this._client.hSet(`baId:${id}`, 'restrict', 'r18')
       await this._client.sAdd('baImg:r18', id)
       await this._client.sRem('baImg:safe', id)
     }
@@ -193,6 +194,7 @@ export class RedisDatabase {
     processBar.start(rIds.length, 0)
     for (const [index, id] of rIds.entries()) {
       processBar.update(index + 1)
+      await this._client.hSet(`baId:${id}`, 'restrict', 'r18')
       await this._client.sAdd('baImg:r18', id)
       await this._client.sRem('baImg:safe', id)
     }
@@ -249,6 +251,7 @@ export class RedisDatabase {
     processBar.start(rIds.length, 0)
     for (const [index, id] of rIds.entries()) {
       processBar.update(index + 1)
+      await this._client.hSet(`baId:${id}`, 'restrict', 'r18')
       await this._client.sAdd('baImg:r18', id)
       await this._client.sRem('baImg:safe', id)
     }
