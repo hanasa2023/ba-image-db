@@ -8,7 +8,6 @@ import { BASE_URL, getOptions } from '../utils/constants'
 import { delay } from '../utils/failed-handle'
 import { parseRedisHash } from '../utils/tools'
 import { IllustDTO } from '../types/illust'
-import { string } from 'zod'
 
 export class RedisDatabase {
   private _client
