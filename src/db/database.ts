@@ -87,7 +87,7 @@ export class RedisDatabase {
             await this._client.hSet(
               `baId:${strId}`,
               'restrict',
-              illust.restrict === '0' ? 'safe' : 'r18',
+              illust.x_restrict === '0' ? 'safe' : 'r18',
             )
             await this._client.hSet(`baId:${strId}`, 'aiType', illust.ai_type)
             await this._client.hSet(
@@ -160,7 +160,7 @@ export class RedisDatabase {
           await this._client.hSet(
             `baId:${strId}`,
             'restrict',
-            illust.restrict === '0' ? 'safe' : 'r18',
+            illust.x_restrict === '0' ? 'safe' : 'r18',
           )
           await this._client.hSet(`baId:${strId}`, 'aiType', illust.ai_type)
           await this._client.hSet(
