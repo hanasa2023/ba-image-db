@@ -8,6 +8,7 @@ import { BASE_URL, getOptions } from '../utils/constants'
 import { delay } from '../utils/failed-handle'
 import { parseRedisHash } from '../utils/tools'
 import { IllustDTO } from '../types/illust'
+import { string } from 'zod'
 
 export class RedisDatabase {
   private _client
@@ -110,6 +111,15 @@ export class RedisDatabase {
       }
     }
     processBar.stop()
+    const rTags: string[] = ['baTag:R-18G', 'baTag:R-18', 'baTag:R18']
+    const rIds = await this._client.sUnion(rTags)
+    processBar.start(rIds.length, 0)
+    for (const [index, id] of rIds.entries()) {
+      processBar.update(index + 1)
+      await this._client.sAdd('baImg:r18', id)
+      await this._client.sRem('baImg:safe', id)
+    }
+    processBar.stop()
     logger.info('Data update successfully!')
     await this.disconnect()
   }
@@ -179,6 +189,15 @@ export class RedisDatabase {
       }
     }
     processBar.stop()
+    const rTags: string[] = ['baTag:R-18G', 'baTag:R-18', 'baTag:R18']
+    const rIds = await this._client.sUnion(rTags)
+    processBar.start(rIds.length, 0)
+    for (const [index, id] of rIds.entries()) {
+      processBar.update(index + 1)
+      await this._client.sAdd('baImg:r18', id)
+      await this._client.sRem('baImg:safe', id)
+    }
+    processBar.stop()
     logger.info('Data set successfully!')
     await this.disconnect()
     return delayTime
@@ -209,9 +228,9 @@ export class RedisDatabase {
       id.replace('baId:', ''),
     )
     logger.info('Start fixing DB')
-    for (const id of ids) {
-      processBar.start(ids.length, 0)
-      processBar.increment()
+    processBar.start(ids.length, 0)
+    for (const [index, id] of ids.entries()) {
+      processBar.update(index + 1)
       const illust = await this._client.hGetAll(`baId:${id}`)
       const illustInfo = parseRedisHash<IllustDTO>(illust)
       // 设置baImg:ai/notAI, baImg:safe/r18
@@ -220,11 +239,21 @@ export class RedisDatabase {
         id,
       )
       await this._client.sAdd(
-        `baImg:${illustInfo.restrict === '0' ? 'safe' : 'r18'}`,
+        `baImg:${illustInfo.restrict === 'safe' ? 'safe' : 'r18'}`,
         id,
       )
       processBar.stop()
     }
+    // 手动设置r18tag
+    const rTags: string[] = ['baTag:R-18G', 'baTag:R-18', 'baTag:R18']
+    const rIds = await this._client.sUnion(rTags)
+    processBar.start(rIds.length, 0)
+    for (const [index, id] of rIds.entries()) {
+      processBar.update(index + 1)
+      await this._client.sAdd('baImg:r18', id)
+      await this._client.sRem('baImg:safe', id)
+    }
+    processBar.stop()
     logger.info('DB fixed successfully!')
   }
 }
