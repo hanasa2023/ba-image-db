@@ -67,8 +67,19 @@ export class RedisDatabase {
           if (response.ok) {
             const illust: IllustDetails = (await response.json()).body
               .illust_details
+            const tags = illust.tags.reduce((acc: string, cur: string) => {
+              return acc + ', ' + cur
+            })
             await this._client.del(`baId:${strId}`)
+            await this._client.hSet(`baId:${strId}`, 'id', illust.id)
             await this._client.hSet(`baId:${strId}`, 'title', illust.title)
+            await this._client.hSet(`baId:${strId}`, 'tags', tags)
+            await this._client.hSet(
+              `baId:${strId}`,
+              'restrict',
+              illust.restrict === '0' ? 'safe' : 'r18',
+            )
+            await this._client.hSet(`baId:${strId}`, 'aiType', illust.ai_type)
             await this._client.hSet(
               `baId:${strId}`,
               'imgUrl',
@@ -93,7 +104,8 @@ export class RedisDatabase {
     await this.disconnect()
   }
 
-  async setData(res: SearchResponse) {
+  async setData(res: SearchResponse): Promise<number> {
+    let delayTime = 0
     await this.connect()
     logger.info('Setting data')
     processBar.start(res.data.length, 0)
@@ -115,8 +127,19 @@ export class RedisDatabase {
           if (response.ok) {
             const illust: IllustDetails = (await response.json()).body
               .illust_details
+            const tags = illust.tags.reduce((acc: string, cur: string) => {
+              return acc + ', ' + cur
+            })
             await this._client.del(`baId:${strId}`)
+            await this._client.hSet(`baId:${strId}`, 'id', illust.id)
             await this._client.hSet(`baId:${strId}`, 'title', illust.title)
+            await this._client.hSet(`baId:${strId}`, 'tags', tags)
+            await this._client.hSet(
+              `baId:${strId}`,
+              'restrict',
+              illust.restrict === '0' ? 'safe' : 'r18',
+            )
+            await this._client.hSet(`baId:${strId}`, 'aiType', illust.ai_type)
             await this._client.hSet(
               `baId:${strId}`,
               'imgUrl',
@@ -132,14 +155,18 @@ export class RedisDatabase {
               'authorId',
               illust.author_details.user_id,
             )
-            await delay(1500)
+            await delay(1000)
+            delayTime = 0
           }
+        } else {
+          delayTime = 1000
         }
       }
     }
     processBar.stop()
     logger.info('Data set successfully!')
     await this.disconnect()
+    return delayTime
   }
 
   async getIdByTags(tags: string[]) {

@@ -22,8 +22,12 @@ export interface AuthorDTO {
 }
 
 export interface IllustDetails {
+  id: string
   title: string
   url_big: string
+  tags: string[]
+  restrict: string
+  ai_type: number
   author_details: AuthorDetailsDTO
 }
 

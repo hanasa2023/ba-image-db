@@ -8,26 +8,17 @@ import fs from 'fs'
 import { SearchResponse } from './types/search-response'
 
 async function index() {
-  // const getTotal = await fetchWithRetry(`${BASE_URL}/search`, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify({
-  //     word: 'ブルーアーカイブ ',
-  //     blt: 1000,
-  //   }),
-  // })
   const getTotal = await fetchWithRetry(
-    `${BASE_URL}/ajax/search/illustrations/ブルーアーカイブ 1000users入り?word=ブルーアーカイブ 1000users入り&order=date_d&mode=all&csw=0&s_mode=s_tag&type=all&lang=zh`,
+    `${BASE_URL}/ajax/search/illustrations/ブルーアーカイブ1000users入り?word=ブルーアーカイブ1000users入り&order=date_d&mode=all&csw=0&s_mode=s_full_tag&type=all&lang=zh`,
     getOptions,
   )
   let total = 0
+  let lastPage = 0
   if (getTotal.ok) {
     const json = await getTotal.json()
     total = json.body.illust.total
+    lastPage = json.body.illust.lastPage
   }
-  const lastPage = Math.ceil(total / 60)
   logger.info(`Total: ${total}, Last Page: ${lastPage}`)
   if (total === 0) throw new Error('Total is 0')
 
@@ -41,21 +32,10 @@ async function index() {
   for (let i = startPage - 1; i < lastPage; i++) {
     logger.info(`Page: ${i + 1}`)
     try {
-      // const response = await fetchWithRetry(`${BASE_URL}/search`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     word: 'ブルーアーカイブ ',
-      //     blt: 1000,
-      //     p: i + 1,
-      //   }),
-      // })
       const response = await fetchWithRetry(
-        `${BASE_URL}/ajax/search/illustrations/ブルーアーカイブ 1000users入り?word=ブルーアーカイブ 1000users入り&order=date_d&mode=all&p=${
+        `${BASE_URL}/ajax/search/illustrations/ブルーアーカイブ1000users入り?word=ブルーアーカイブ1000users入り&order=date_d&mode=all&p=${
           i + 1
-        }&csw=0&s_mode=s_tag&type=all&lang=zh`,
+        }&csw=0&s_mode=s_full_tag&type=all&lang=zh`,
         getOptions,
       )
       if (response.ok) {
