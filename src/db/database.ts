@@ -84,6 +84,8 @@ export class RedisDatabase {
             await this._client.hSet(`baId:${strId}`, 'id', illust.id)
             await this._client.hSet(`baId:${strId}`, 'title', illust.title)
             await this._client.hSet(`baId:${strId}`, 'tags', tags)
+            await this._client.hSet(`baId:${strId}`, 'loveMembers', 0)
+            await this._client.hSet(`baId:${strId}`, 'hateMembers', 0)
             await this._client.hSet(
               `baId:${strId}`,
               'restrict',
@@ -157,6 +159,8 @@ export class RedisDatabase {
           await this._client.hSet(`baId:${strId}`, 'id', illust.id)
           await this._client.hSet(`baId:${strId}`, 'title', illust.title)
           await this._client.hSet(`baId:${strId}`, 'tags', tags)
+          await this._client.hSet(`baId:${strId}`, 'loveMembers', 0)
+          await this._client.hSet(`baId:${strId}`, 'hateMembers', 0)
           await this._client.hSet(
             `baId:${strId}`,
             'restrict',
@@ -243,6 +247,9 @@ export class RedisDatabase {
         `baImg:${illustInfo.restrict === 'safe' ? 'safe' : 'r18'}`,
         id,
       )
+      //设置love/hateMemebers
+      await this._client.hSet(`baId:${id}`, 'loveMembers', 0)
+      await this._client.hSet(`baId:${id}`, 'hateMembers', 0)
       processBar.stop()
     }
     // 手动设置r18tag
